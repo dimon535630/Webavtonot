@@ -1,15 +1,9 @@
 const STORAGE_KEY = "exeShopData";
+const MAX_FILE_SIZE_BYTES = 4 * 1024 * 1024;
 
 const defaultData = {
   adminPassword: "admin123",
-  products: [
-    {
-      id: crypto.randomUUID(),
-      title: "Архиватор FastPack.exe",
-      description: "Упаковывает и распаковывает папки в 1 клик.",
-      price: 299,
-    },
-  ],
+  products: [],
   orders: [],
   feedback: [],
 };
@@ -31,6 +25,7 @@ const adminPasswordInput = document.getElementById("adminPassword");
 const adminLoginBtn = document.getElementById("adminLoginBtn");
 
 const productForm = document.getElementById("productForm");
+const productFileInput = document.getElementById("productFile");
 const adminProducts = document.getElementById("adminProducts");
 const ordersList = document.getElementById("ordersList");
 const profitSummary = document.getElementById("profitSummary");
@@ -48,9 +43,9 @@ function loadData() {
     return {
       ...structuredClone(defaultData),
       ...parsed,
-      products: parsed.products || [],
-      orders: parsed.orders || [],
-      feedback: parsed.feedback || [],
+      products: Array.isArray(parsed.products) ? parsed.products : [],
+      orders: Array.isArray(parsed.orders) ? parsed.orders : [],
+      feedback: Array.isArray(parsed.feedback) ? parsed.feedback : [],
     };
   } catch {
     return structuredClone(defaultData);
@@ -84,6 +79,7 @@ function renderStoreProducts() {
     fragment.querySelector(".product-title").textContent = product.title;
     fragment.querySelector(".product-description").textContent = product.description || "Без описания";
     fragment.querySelector(".product-price").textContent = `${product.price} ₽`;
+    fragment.querySelector(".product-file").textContent = `Файл: ${product.fileName || "не указан"}`;
 
     const buyForm = fragment.querySelector(".buy-form");
     buyForm.addEventListener("submit", (event) => {
@@ -100,14 +96,31 @@ function renderStoreProducts() {
         price: Number(product.price),
         date: new Date().toLocaleString("ru-RU"),
       });
+
       saveData();
       renderAdmin();
       buyForm.reset();
-      alert(`Спасибо за покупку, ${buyer}! Продавец увидит ваш заказ в админке.`);
+
+      if (!product.fileDataUrl) {
+        alert("Покупка записана, но файл не прикреплен. Обратитесь к продавцу.");
+        return;
+      }
+
+      triggerDownload(product.fileDataUrl, product.fileName || `${product.title}.exe`);
+      alert(`Спасибо за покупку, ${buyer}! Скачивание началось.`);
     });
 
     storeProducts.appendChild(fragment);
   });
+}
+
+function triggerDownload(dataUrl, fileName) {
+  const a = document.createElement("a");
+  a.href = dataUrl;
+  a.download = fileName;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
 }
 
 function renderFeedback() {
@@ -127,7 +140,8 @@ function renderAdminProducts() {
       <div class="row">
         <div>
           <strong>${escapeHtml(product.title)}</strong><br/>
-          <span>${product.price} ₽</span>
+          <span>${product.price} ₽</span><br/>
+          <span class="small">Файл: ${escapeHtml(product.fileName || "не прикреплен")}</span>
         </div>
         <button class="delete-btn" type="button">Удалить</button>
       </div>
@@ -140,6 +154,10 @@ function renderAdminProducts() {
     });
     adminProducts.appendChild(li);
   });
+
+  if (!data.products.length) {
+    adminProducts.innerHTML = "<li>Товаров пока нет.</li>";
+  }
 }
 
 function renderOrders() {
@@ -168,6 +186,15 @@ function renderAdmin() {
   renderOrders();
 }
 
+function fileToDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result));
+    reader.onerror = () => reject(new Error("Не удалось прочитать файл"));
+    reader.readAsDataURL(file);
+  });
+}
+
 function escapeHtml(value) {
   return String(value)
     .replaceAll("&", "&amp;")
@@ -192,7 +219,7 @@ adminLoginBtn.addEventListener("click", () => {
   }
 });
 
-productForm.addEventListener("submit", (event) => {
+productForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   if (!isAdminLogged) return;
 
@@ -200,20 +227,37 @@ productForm.addEventListener("submit", (event) => {
   const title = String(fd.get("title") || "").trim();
   const description = String(fd.get("description") || "").trim();
   const price = Number(fd.get("price"));
+  const file = productFileInput.files?.[0];
 
-  if (!title || Number.isNaN(price)) return;
+  if (!title || Number.isNaN(price) || !file) {
+    alert("Заполните название, цену и выберите EXE-файл");
+    return;
+  }
 
-  data.products.unshift({
-    id: crypto.randomUUID(),
-    title,
-    description,
-    price,
-  });
+  if (file.size > MAX_FILE_SIZE_BYTES) {
+    alert("Файл слишком большой для демо localStorage. Используйте файл поменьше (до ~4 MB).");
+    return;
+  }
 
-  saveData();
-  productForm.reset();
-  renderStoreProducts();
-  renderAdminProducts();
+  try {
+    const fileDataUrl = await fileToDataUrl(file);
+
+    data.products.unshift({
+      id: crypto.randomUUID(),
+      title,
+      description,
+      price,
+      fileName: file.name,
+      fileDataUrl,
+    });
+
+    saveData();
+    productForm.reset();
+    renderStoreProducts();
+    renderAdminProducts();
+  } catch {
+    alert("Не получилось загрузить файл. Попробуйте еще раз.");
+  }
 });
 
 feedbackForm.addEventListener("submit", (event) => {

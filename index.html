@@ -21,7 +21,7 @@
     <main>
       <section id="storeSection" class="card">
         <h2>Что я продаю</h2>
-        <p>Покупатель видит товары, цену и может оставить заявку на покупку.</p>
+        <p>Покупатель видит товары, цену, покупает и сразу скачивает EXE-файл.</p>
         <div id="storeProducts" class="products-grid"></div>
 
         <h3>💬 Обратная связь от покупателей</h3>
@@ -69,6 +69,11 @@
                   Цена (₽)
                   <input required name="price" type="number" min="0" step="1" placeholder="499" />
                 </label>
+                <label>
+                  EXE-файл для скачивания
+                  <input required id="productFile" name="file" type="file" accept=".exe,application/x-msdownload" />
+                </label>
+                <p class="small">Совет: для демо держите файл до ~4 MB (ограничение localStorage).</p>
                 <button class="btn btn-primary" type="submit">Добавить товар</button>
               </form>
               <ul id="adminProducts" class="list"></ul>
@@ -100,9 +105,10 @@
         <h4 class="product-title"></h4>
         <p class="product-description"></p>
         <p class="product-price"></p>
+        <p class="small product-file"></p>
         <form class="buy-form stack small-gap">
           <input required name="buyer" placeholder="Ваше имя" />
-          <button class="btn btn-primary" type="submit">Купить</button>
+          <button class="btn btn-primary" type="submit">Купить и скачать</button>
         </form>
       </article>
     </template>
