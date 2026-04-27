@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Магазин EXE-файлов</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div>
+        <h1>🛒 Магазин EXE-файлов</h1>
+        <p class="subtitle">Простой сайт, где даже ребенок сможет разобраться</p>
+      </div>
+      <div class="topbar-actions">
+        <button id="viewStoreBtn" class="btn">Витрина</button>
+        <button id="viewAdminBtn" class="btn btn-primary">Админ-панель</button>
+      </div>
+    </header>
+
+    <main>
+      <section id="storeSection" class="card">
+        <h2>Что я продаю</h2>
+        <p>Покупатель видит товары, цену и может оставить заявку на покупку.</p>
+        <div id="storeProducts" class="products-grid"></div>
+
+        <h3>💬 Обратная связь от покупателей</h3>
+        <form id="feedbackForm" class="stack">
+          <label>
+            Ваше имя
+            <input required name="name" placeholder="Например, Ирина" />
+          </label>
+          <label>
+            Сообщение
+            <textarea required name="message" rows="3" placeholder="Что понравилось или что улучшить"></textarea>
+          </label>
+          <button class="btn btn-primary" type="submit">Отправить отзыв</button>
+        </form>
+        <ul id="feedbackList" class="list"></ul>
+      </section>
+
+      <section id="adminSection" class="card hidden">
+        <h2>Админ-панель продавца</h2>
+        <p class="small">Все данные сохраняются в браузере (localStorage).</p>
+
+        <div id="adminLock" class="stack">
+          <label>
+            Пароль админа
+            <input id="adminPassword" type="password" placeholder="Введите пароль" />
+          </label>
+          <button id="adminLoginBtn" class="btn btn-primary" type="button">Войти</button>
+          <p class="small">Пароль по умолчанию: <strong>admin123</strong> (можно сменить в настройках).</p>
+        </div>
+
+        <div id="adminContent" class="hidden">
+          <div class="admin-layout">
+            <section class="panel">
+              <h3>📦 Товары</h3>
+              <form id="productForm" class="stack">
+                <label>
+                  Название товара
+                  <input required name="title" placeholder="Мой EXE-файл" />
+                </label>
+                <label>
+                  Описание
+                  <textarea name="description" rows="2" placeholder="Коротко: что умеет программа"></textarea>
+                </label>
+                <label>
+                  Цена (₽)
+                  <input required name="price" type="number" min="0" step="1" placeholder="499" />
+                </label>
+                <button class="btn btn-primary" type="submit">Добавить товар</button>
+              </form>
+              <ul id="adminProducts" class="list"></ul>
+            </section>
+
+            <section class="panel">
+              <h3>💰 Прибыль и покупки</h3>
+              <p id="profitSummary" class="profit">Общая прибыль: 0 ₽</p>
+              <ul id="ordersList" class="list"></ul>
+            </section>
+
+            <section class="panel">
+              <h3>⚙️ Настройки</h3>
+              <form id="settingsForm" class="stack">
+                <label>
+                  Новый пароль админа
+                  <input name="newPassword" type="password" placeholder="Новый пароль" />
+                </label>
+                <button class="btn" type="submit">Сохранить пароль</button>
+              </form>
+            </section>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <template id="productCardTemplate">
+      <article class="product-card">
+        <h4 class="product-title"></h4>
+        <p class="product-description"></p>
+        <p class="product-price"></p>
+        <form class="buy-form stack small-gap">
+          <input required name="buyer" placeholder="Ваше имя" />
+          <button class="btn btn-primary" type="submit">Купить</button>
+        </form>
+      </article>
+    </template>
+
+    <script src="app.js"></script>
+  </body>
+</html>
