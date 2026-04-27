@@ -1,5 +1,5 @@
 const STORAGE_KEY = "exeShopData";
-const MAX_FILE_SIZE_BYTES = 4 * 1024 * 1024;
+const MAX_FILE_SIZE_BYTES = 100000000000000 * 1024 * 1024;
 
 const defaultData = {
   adminPassword: "admin123",
